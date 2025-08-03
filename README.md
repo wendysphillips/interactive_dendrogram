@@ -1,16 +1,18 @@
 # Interactive Dendrogram Explorer
 
-An interactive R Shiny application for exploring hierarchical clustering patterns in yeast metal tolerance data through zoomable dendrograms.
+An interactive R Shiny application for exploring hierarchical clustering patterns using various distance and clustering methods through zoomable dendrograms.
 
 ## Background
 
-This application visualizes yeast metal tolerance data from Grossjean, et. al., 2022. Genome-Wide Mutant Screening in Yeast Reveals that the Cell Wall is a First Shield to Discriminate Light From Heavy Lanthanides. Frontiers in Microbiology (https://doi.org/10.3389/fmicb.2022.881535), allowing users to interactively explore clustering patterns of 630 yeast gene mutants based on their tolerance to 12 different metals (As, Cd, Co, Cr, Cu, Fe, La, Mn, Ni, Y, Yb, Zn).
+The example data used for this application is yeast metal tolerance data from Grossjean, et. al., 2022. Genome-Wide Mutant Screening in Yeast Reveals that the Cell Wall is a First Shield to Discriminate Light From Heavy Lanthanides. Frontiers in Microbiology (https://doi.org/10.3389/fmicb.2022.881535). With these data, users can interactively explore clustering patterns of 630 yeast gene mutants based on their tolerance to 12 different metals (As, Cd, Co, Cr, Cu, Fe, La, Mn, Ni, Y, Yb, Zn).
 
 ## Features
 
 ### Interactive Clustering
+- **Multiple Distance Methods**: Choose from Manhattan, Euclidean, Maximum, or Binary distance calculations
+- **Multiple Clustering Methods**: Select from Complete, Single, Average, or Ward.D2 linkage methods
 - **Dynamic Cut Height**: Adjust clustering granularity with a simple slider
-- **Real-time Cluster Visualization**: See cluster assignments update instantly
+- **Real-time Cluster Visualization**: See cluster assignments update instantly as you change parameters
 - **Color-coded Groups**: Each cluster gets a unique, high-contrast color
 
 ### Navigation & Zoom
@@ -18,17 +20,22 @@ This application visualizes yeast metal tolerance data from Grossjean, et. al., 
 - **Label Search**: Find and zoom to specific yeast genes by name
 - **Reset View**: Easily return to the full dendrogram view
 
+### Data Export
+- **Cluster Export**: Download cluster assignments as CSV files with current settings
+- **Filename includes parameters**: Exported files are automatically named with distance method, clustering method, and cut height
+
 ### Visual Elements
 - Clean, publication-ready dendrogram layout
 - Cluster boundary indicators with numbered labels
 - Responsive design with intuitive controls
+- Real-time parameter display in plot title
 
 ## Getting Started
 
 ### Prerequisites
 ```r
 # Required R packages
-install.packages(c("shiny", "tidyverse", "ggdendro"))
+install.packages(c("shiny", "dplyr", "tibble", "ggdendro"))
 ```
 
 ### Running the Application
@@ -60,22 +67,24 @@ interactive_dendrogram/
 
 ## How to Use
 
-1. **Adjust Clustering**: Use the "Cut Height" slider to change how many clusters are formed
-2. **Explore Regions**: Click and drag on the dendrogram to zoom into specific areas
-3. **Find Genes**: Enter a yeast gene name (e.g., "YAL053W") and click "Zoom to Label"
-4. **Reset View**: Click "Reset Zoom" to return to the full dendrogram
+1. **Select Methods**: Choose your preferred distance calculation and clustering method from the dropdowns
+2. **Adjust Clustering**: Use the "Cut Height" slider to change how many clusters are formed
+3. **Explore Regions**: Click and drag on the dendrogram to zoom into specific areas
+4. **Find Genes**: Enter a yeast gene name (e.g., "YAL053W") and click "Zoom to Label"
+5. **Export Data**: Click "Export Cluster Data" to download cluster assignments as a CSV file
+6. **Reset View**: Click "Reset Zoom" to return to the full dendrogram
 
 ## Data Format
 
 The application expects tab-separated data with:
-- **First column**: Unique identifiers to be clustered
+- **First column**: Unique identifiers to be clustered, without column name
 - **Remaining columns**: Numeric values for clustering
 
 ### Using Your Own Data
 
 While this example uses yeast metal tolerance data, you can easily substitute any dataset that is amenable to hierarchical clustering. Simply replace the `yeast_metal_tolerances.tsv` file with your own tab-separated data file that follows the same format:
 
-- Row identifiers in the first column
+- Values to be clustered in the first column (column unnamed)
 - Numeric data suitable for clustering in subsequent columns
 - Ensure your data is properly scaled if variables have different units
 
@@ -83,9 +92,11 @@ The application will automatically adapt to datasets of different sizes and vari
 
 ## Technical Details
 
-- **Clustering Method**: Ward's method (ward.D2) with Euclidean distance
+- **Distance Methods**: Manhattan, Euclidean, Maximum, Binary (optimized for discrete data)
+- **Clustering Methods**: Complete, Single, Average, Ward.D2 (selected for stability with discrete values)
 - **Visualization**: ggplot2 with ggdendro for dendrogram rendering
 - **Interactivity**: Shiny reactive framework for real-time updates
+- **Data Export**: CSV format with row labels and cluster assignments
 
 
 ## Contributing
