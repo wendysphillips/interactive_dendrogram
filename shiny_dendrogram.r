@@ -112,9 +112,7 @@ create_zoom_tree <- function() {
           axis.text.y = element_blank(),
           axis.text.x = element_text(color = "black", size = 12),
           axis.title.x = element_text(color = "black", size = 16),
-          legend.text = element_text(size = 14),
-          legend.title = element_text(size = 16),
-          legend.key.size = unit(1.5, "cm"),
+          legend.position = "none",
           plot.margin = margin(t = 20, r = 20, b = 20, l = 120, unit = "pt")
         ) +
         labs(title = paste("Distance:", input$distance_method, "| Clustering:", input$cluster_method, "| Cut height:", input$cut_height), y = "", x = "Cut height") +
