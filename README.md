@@ -11,7 +11,7 @@ The example data used for this application is yeast metal tolerance data from Gr
 ### Interactive Clustering
 - **Multiple Distance Methods**: Choose from Manhattan, Euclidean, Maximum, or Binary distance calculations
 - **Multiple Clustering Methods**: Select from Complete, Single, Average, or Ward.D2 linkage methods
-- **Dynamic Cut Height**: Adjust clustering granularity with a simple slider
+- **Dynamic Cut Height**: Adjust clustering granularity
 - **Real-time Cluster Visualization**: See cluster assignments update instantly as you change parameters
 - **Color-coded Groups**: Each cluster gets a unique, high-contrast color
 
@@ -35,7 +35,7 @@ The example data used for this application is yeast metal tolerance data from Gr
 ### Prerequisites
 ```r
 # Required R packages
-install.packages(c("shiny", "dplyr", "tibble", "ggdendro"))
+install.packages(c("shiny", "dplyr", "ggplot2", "tibble", "ggdendro"))
 ```
 
 ### Running the Application
@@ -74,17 +74,11 @@ interactive_dendrogram/
 5. **Export Data**: Click "Export Cluster Data" to download cluster assignments as a CSV file
 6. **Reset View**: Click "Reset Zoom" to return to the full dendrogram
 
-## Data Format
-
-The application expects tab-separated data with:
-- **First column**: Unique identifiers to be clustered, without column name
-- **Remaining columns**: Numeric values for clustering
-
 ### Using Your Own Data
 
 While this example uses yeast metal tolerance data, you can easily substitute any dataset that is amenable to hierarchical clustering. Simply replace the `yeast_metal_tolerances.tsv` file with your own tab-separated data file that follows the same format:
 
-- Values to be clustered in the first column (column unnamed)
+- Labels (e.g. genes) to be clustered in the first column (column unnamed)
 - Numeric data suitable for clustering in subsequent columns
 - Ensure your data is properly scaled if variables have different units
 
@@ -97,13 +91,16 @@ The application will automatically adapt to datasets of different sizes and vari
 - **Visualization**: ggplot2 with ggdendro for dendrogram rendering
 - **Interactivity**: Shiny reactive framework for real-time updates
 - **Data Export**: CSV format with row labels and cluster assignments
+- **Image Export**: PNG format at 300 DPI for publication-quality images
 
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
 
-## License
+## Authors
+
+This pipeline was developed jointly by **Wendy Phillips** and **GitHub Copilot** through collaborative AI-assisted programming.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

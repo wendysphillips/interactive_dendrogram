@@ -5,13 +5,15 @@ library(tibble)
 library(ggplot2)
 library(ggdendro)
 
+### CHANGE INPUT FILE HERE ###
+df <- read.table("yeast_metal_tolerances.tsv", header = TRUE, row.names = 1)
+# The first column should contain the items to be clustered
+# The input table should be pre-processed with any chosen scaling prior to clustering
+# The above data come from this publication:
+# https://doi.org/10.3389/fmicb.2022.881535
+
 # Load custom color generation function
 source("generate_colors.R")
-
-# The first column of the input file should have no name
-# Data come from this publication:
-# https://doi.org/10.3389/fmicb.2022.881535
-df <- read.table("yeast_metal_tolerances.tsv")
 
 # Function to create a zoomable dendrogram app
 create_zoom_tree <- function() {
@@ -41,6 +43,8 @@ create_zoom_tree <- function() {
         actionButton("reset_zoom", "Reset Zoom", class = "btn-secondary"),
         br(), br(),
         downloadButton("download_clusters", "Export Cluster Data", class = "btn-success"),
+        br(), br(),
+        downloadButton("download_image", "Export Image (PNG)", class = "btn-info"),
         width = 3
       ),
       mainPanel(
@@ -195,6 +199,87 @@ create_zoom_tree <- function() {
         )
         
         write.csv(cluster_data, file, row.names = FALSE)
+      }
+    )
+    
+    # Download handler for image export
+    output$download_image <- downloadHandler(
+      filename = function() {
+        zoom_suffix <- if (!is.null(ranges$x) || !is.null(ranges$y)) "_zoomed" else "_full"
+        paste0("dendrogram_", input$distance_method, "_", input$cluster_method, "_h", input$cut_height, zoom_suffix, ".png")
+      },
+      content = function(file) {
+        # Generate the same plot as displayed
+        # Get cluster assignments at specified height
+        clusters <- cutree(df_clusters(), h = input$cut_height)
+
+        # Add cluster colors to labels
+        dendro_labels <- dendro_df()$labels
+        dendro_labels$cluster <- clusters[dendro_labels$label]
+        dendro_labels$cluster <- as.factor(dendro_labels$cluster)
+
+        # Find all segments that cross the cut height (create cluster boundaries)
+        cluster_segments <- dendro_df()$segments |>
+          dplyr::filter((y <= input$cut_height & yend > input$cut_height) |
+            (y > input$cut_height & yend <= input$cut_height)) |>
+          mutate(cut_x = ifelse(y <= input$cut_height, x, xend)) |>
+          arrange(cut_x)
+
+        # Map intersection points to actual cluster numbers
+        if (nrow(cluster_segments) > 0) {
+          # For each intersection point, find the cluster it represents
+          cluster_segments$cluster_num <- sapply(cluster_segments$cut_x, function(x_pos) {
+            # Find the closest leaf to this x position
+            closest_leaf <- dendro_labels[which.min(abs(dendro_labels$x - x_pos)), ]
+            return(as.numeric(as.character(closest_leaf$cluster)))
+          })
+        }
+        
+        # Generate plot with segments and labels
+        p <- ggplot() +
+          geom_segment(
+            data = dendro_df()$segments,
+            aes(x = y, y = x, xend = yend, yend = xend)
+          ) +
+          geom_text(
+            data = dendro_labels,
+            aes(x = y, y = x, label = label, color = cluster),
+            hjust = 1.05, vjust = 0.5, angle = 0, size = 3, fontface = "bold", family = "sans"
+          ) +
+          geom_vline(xintercept = input$cut_height, linetype = "dashed", color = "red") +
+          theme_minimal() +
+          theme(
+            axis.text.y = element_blank(),
+            axis.text.x = element_text(color = "black", size = 12),
+            axis.title.x = element_text(color = "black", size = 16),
+            legend.position = "none",
+            plot.margin = margin(t = 20, r = 20, b = 20, l = 120, unit = "pt")
+          ) +
+          labs(title = paste("Distance:", input$distance_method, "| Clustering:", input$cluster_method, "| Cut height:", input$cut_height), y = "", x = "Cut height") +
+          scale_color_manual(values = random_colors) +
+          guides(color = guide_legend(override.aes = list(size = 10), ncol = 4)) +
+          coord_cartesian(clip = "off")
+
+        # Add cluster labels at intersection points
+        if (nrow(cluster_segments) > 0) {
+          p <- p + geom_text(
+            data = cluster_segments,
+            aes(y = cut_x, x = input$cut_height, label = cluster_num),
+            size = 4, fontface = "bold", color = "red",
+            hjust = 0.5, vjust = -0.5
+          )
+        }
+
+        # Apply zoom if ranges are set
+        if (!is.null(ranges$x)) {
+          p <- p + xlim(ranges$x[1], ranges$x[2])
+        }
+        if (!is.null(ranges$y)) {
+          p <- p + ylim(ranges$y[1], ranges$y[2])
+        }
+        
+        # Save the plot as PNG
+        ggsave(file, p, width = 16, height = 10, dpi = 300, units = "in")
       }
     )
   }
